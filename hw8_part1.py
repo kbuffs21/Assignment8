@@ -3,59 +3,12 @@ import operator
 import re
 import string
 
-def print_dict(dictionary, ident = '', braces=1):
-	
-	for key, hAsh in dictionary.iteritems():
-		if isinstance(hAsh, dict):
-			print '%s%s%s%s' %(ident,braces*'[',key,braces*']') 
-			print_dict(hAsh, ident+'  ', braces+1)
-		else:
-			print ident+'%s = %s' %(key, hAsh)
-
-def main():
-	alpha_count_num = dict.fromkeys(string.ascii_lowercase, float(1.0))
-	alpha_count_denom = dict.fromkeys(string.ascii_lowercase, float(26.0))
-	alpha_count_prob = dict.fromkeys(string.ascii_lowercase, float(0.0))
-	#alpha_transition = dict.fromkeys(string.ascii_lowercase, dict.fromkeys(string.ascii_lowercase, float(1.0)))
-	alpha = ['a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
-	alpha_transition2 = {}
-	for let1 in alpha:
-		alpha_transition2[let1] = {}
-		for let2 in alpha:
-			alpha_transition2[let1][let2] = float(1.0)
-	lines = []
-	
-	with open('typos20.data') as f:
-		lines = f.read().splitlines()
-	
-	# find & set observations & states
-	for i in range(0,len(lines)):
-		if re.search('[a-z]',lines[i]):
-			alpha_count_denom[lines[i][0]] +=1 
-			if lines[i][0] == lines[i][2]:
-				alpha_count_num[lines[i][2]] +=1
-	
-	#calc individual probs
-	for letter in alpha_count_prob:
-		alpha_count_prob[letter] = alpha_count_num[letter] / alpha_count_denom[letter]
-	
-	#calc transitional probs
-	for letter in range(0,len(lines)-1):
-		if re.search('[a-z]',lines[letter][0]) and re.search('[a-z]',lines[letter+1][0]):
-			alpha_transition2[(lines[letter][0])][(lines[letter+1][0])] +=1 
-	#normalize transitional probabilities		
-	for letter in alpha_count_prob:
-		for given in alpha_count_prob:
-			alpha_transition2[letter][given] = alpha_transition2[letter][given] / alpha_count_denom[letter]  
-	
-			
-			
+def print_dict(acd, alpha_transition2, alpha_emissions):
 	print 'Transitional Probabilities'
 	print ''
-	#print_dict(alpha_transition2)
-	for letter in alpha_count_prob:
-		for given in alpha_count_prob:
-			print 'probability next letter is: ' + given + ', given this letter is: ' +letter + ' = ' + str(alpha_transition2[letter][given])
+	for letter in acd:
+		for given in acd:
+			print 'probability next letter is: ' + given + ', given current letter is: ' +letter + ' = ' + str(alpha_transition2[letter][given])
 	
 	
 	print ''
@@ -64,9 +17,115 @@ def main():
 	print 'Emission Probabilites'
 	print 'E[t] | X[t]'
 	print ''  		
-	for key, val in alpha_count_prob.iteritems():
-		print key, val	
+	#for key, val in alpha_count_prob.iteritems():
+	#	print key, val	
+	for letter in acd:
+		for given in acd:
+			print 'probability output is: ' + given + ', given state is: ' +letter + ' = ' + str(alpha_emissions[letter][given])
 
+def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
+	original_state = ''
+	state = ''
+	vx = {}
+	vpxp = {}
+	pie = {}
+	for let1 in acd:
+		vx[let1] = float(0.0)
+		pie[let1] = float(1.0/27.0)
+	
+	#initial
+	for let1 in acd:	
+		vx[let1] = math.log(alpha_emissions[let1][lines_test[1][2]]) + math.log(pie[let1]) 
+	state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
+	original_state += state
+	
+	#algo
+	for letter in range(2,len(lines_test)):
+		vpxp = vx
+		for let1 in acd:
+			vx[let1] = math.log(alpha_emissions[let1][lines_test[letter][2]]) + math.log(alpha_transition2[state][let1]) #+ vpxp[state]
+		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
+		original_state += state
+	return original_state
+
+		
+def main():
+	
+	
+	#create dicts and lists
+	alphat = ['_','a','b','c','d','e','f','g','h','i','j','k','l','m','n','o','p','q','r','s','t','u','v','w','x','y','z']
+	alpha_emissions = {}
+	alpha_transition2 = {}
+	acd = {}
+	err_rate_original = 0.0
+	err_rate_after_algo = 0.0
+	after = ''
+	
+	for let1 in alphat:
+		acd[let1] = float(27.0)
+	
+	for let1 in alphat:
+		alpha_transition2[let1] = {}
+		alpha_emissions[let1] = {}
+		for let2 in alphat:
+			alpha_transition2[let1][let2] = float(1.0)
+			alpha_emissions[let1][let2] = float(1.0)
+	
+	#read in files: typos into lines and typos-test into lines_test
+	lines = []
+	with open('typos20.data') as f:
+		lines = f.read().splitlines()
+		
+	lines_test = []
+	ltobs = ''
+	ltst = ''
+	with open('typos20Test.data') as t:
+		lines_test = t.read().splitlines()		
+	
+	for i in range(1,100):#len(lines_test)):
+		ltobs+= lines_test[i][2]
+		ltst+= lines_test[i][0]
+	print ''
+	#print 'obs: ',ltobs
+	#print 'ste: ', ltst	
+	#print 'recreated: '
+	
+	# find & set observations & states
+	for i in range(0,len(lines)):
+		if re.search('[a-z_]',lines[i][0]): 
+			acd[lines[i][0]] +=1
+
+	
+	#calc transitional and emission probs
+	for letter in range(0,len(lines)-1):
+		if re.search('[a-z_]',lines[letter][0]) and re.search('[a-z_]',lines[letter+1][0]):
+			alpha_transition2[(lines[letter][0])][(lines[letter+1][0])] +=1
+			alpha_emissions[(lines[letter][0])][(lines[letter][2])] +=1
+	
+	#normalize transitional and emission probabilities		
+	for letter in alphat:
+		for given in alphat:
+			alpha_transition2[letter][given] = alpha_transition2[letter][given] / acd[letter]  
+			alpha_emissions[letter][given] = alpha_emissions[letter][given] / acd[letter]
+
+	
+	after = viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test)
+	
+	#print_dict(acd, alpha_transition2, alpha_emissions)
+	
+	#calc and print error rates
+	for i in range(1,len(lines_test)):
+		if lines_test[i][0] == lines_test[i][2]:
+			err_rate_original += 1
+		if lines_test[i][0] == after[i-1]:
+			err_rate_after_algo += 1
+	err_rate_after_algo = err_rate_after_algo/len(after)
+	err_rate_original = err_rate_original/len(after)
+	err_rate_after_algo = 1 - err_rate_after_algo
+	err_rate_original = 1 - err_rate_original
+	print 'after algo : ', err_rate_after_algo
+	print 'before algo: ', err_rate_original
+		
 if __name__ == "__main__":
     main()
 	
