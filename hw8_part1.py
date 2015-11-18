@@ -35,17 +35,34 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 	
 	#initial
 	for let1 in acd:	
-		vx[let1] = math.log(alpha_emissions[let1][lines_test[1][2]]) + math.log(pie[let1]) 
+		vx[let1] = math.log(alpha_emissions[lines_test[1][2]][let1]) + math.log(pie[let1]) 
 	state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
 	original_state += state
-	
+	print vpxp
+	print vx
+	vpxp = vx
+	print vpxp
 	#algo
 	for letter in range(2,len(lines_test)):
-		vpxp = vx
+		if letter == 2 or letter == 3 or letter == 10 or letter == 15:
+			print vpxp, ' before assignment vpxp'
+		
 		for let1 in acd:
-			vx[let1] = math.log(alpha_emissions[let1][lines_test[letter][2]]) + math.log(alpha_transition2[state][let1]) #+ vpxp[state]
+			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) + vpxp[state]
+		
+		if letter == 10 or letter == 15:
+			print vpxp, ' after assignment vpxp'
+			print vx
+		
 		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
 		original_state += state
+		if letter == 2 or letter == 3 or letter == 10 or letter == 15:
+			print vx
+		
+		vpxp = vx
+		for let1 in acd:
+			vx[let1] = float(0.0)  
+	
 	return original_state
 
 		
@@ -62,7 +79,7 @@ def main():
 	after = ''
 	
 	for let1 in alphat:
-		acd[let1] = float(27.0)
+		acd[let1] = float(28.0)
 	
 	for let1 in alphat:
 		alpha_transition2[let1] = {}
