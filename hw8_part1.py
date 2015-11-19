@@ -38,28 +38,29 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 		vx[let1] = math.log(alpha_emissions[lines_test[1][2]][let1]) + math.log(pie[let1]) 
 	state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
 	original_state += state
-	print vpxp
-	print vx
-	vpxp = vx
-	print vpxp
+	vpxp = dict(vx)
 	#algo
 	for letter in range(2,len(lines_test)):
 		if letter == 2 or letter == 3 or letter == 10 or letter == 15:
-			print vpxp, ' before assignment vpxp'
-		
+			print ""
+			print ' before algo vpxp: ', vpxp, ' on iter ', letter
+			print ""
+			print ' before algo vx: ', vx, ' on iter ', letter
+			print ""	
+			
 		for let1 in acd:
-			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) + vpxp[state]
+			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) #+ vpxp[let1]
 		
-		if letter == 10 or letter == 15:
-			print vpxp, ' after assignment vpxp'
-			print vx
-		
-		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
-		original_state += state
 		if letter == 2 or letter == 3 or letter == 10 or letter == 15:
-			print vx
-		
-		vpxp = vx
+			print ""
+			print ' after algo vpxp: ', vpxp, ' on iter ', letter
+			print ""
+			print ' after algo vx: ', vx, ' on iter ', letter
+			print ""	
+		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
+		original_state += state		
+		#vpxp = dict(vx) - dict(vpxp)
+		#vpxp = {key: vx[key] - vpxp.get(key, 0) for key in vx.keys()}
 		for let1 in acd:
 			vx[let1] = float(0.0)  
 	
@@ -142,7 +143,7 @@ def main():
 	err_rate_original = 1 - err_rate_original
 	print 'after algo : ', err_rate_after_algo
 	print 'before algo: ', err_rate_original
-		
+	
 if __name__ == "__main__":
     main()
 	
