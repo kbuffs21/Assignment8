@@ -42,14 +42,17 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 	
 	#algo
 	for letter in range(2,len(lines_test)):
+<<<<<<< HEAD
 		'''if letter == 2 or letter == 3 or letter == 10 or letter == 15:
 =======
 		'''if letter == 2 or letter == 3 or letter == 10:
+>>>>>>> 7e040d814c35d96fade61ac810fc3d9e00597e72
 			print ""
 			print ' before algo vpxp: ', vpxp, ' on iter ', letter
 			print ""
 			print ' before algo vx: ', vx, ' on iter ', letter
 			print ""'''	
+<<<<<<< HEAD
 			
 		for let1 in acd:
 			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) + vpxp[let1]
@@ -61,10 +64,12 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) + vpxp[state]
 		
 		'''if letter == 2 or letter == 3 or letter == 10:
+>>>>>>> 7e040d814c35d96fade61ac810fc3d9e00597e72
 			print ""
 			print ' after algo vpxp: ', vpxp, ' on iter ', letter
 			print ""
 			print ' after algo vx: ', vx, ' on iter ', letter
+<<<<<<< HEAD
 			print ""	'''
 		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
 		original_state += state		
@@ -83,6 +88,7 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 			
 		vpxp = dict(vx)
 		
+>>>>>>> 7e040d814c35d96fade61ac810fc3d9e00597e72
 		for let1 in acd:
 			vx[let1] = float(0.0)  
 	
