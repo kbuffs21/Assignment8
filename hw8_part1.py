@@ -35,15 +35,13 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 	
 	#initial
 	for let1 in acd:	
-		vx[let1] = math.log(alpha_emissions[lines_test[1][2]][let1]) + math.log(pie[let1]) 
+		vx[let1] = math.log(alpha_emissions[let1][lines_test[1][2]]) + math.log(pie[let1]) 
 	state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
 	original_state += state
 	vpxp = dict(vx)
 	
 	#algo
 	for letter in range(2,len(lines_test)):
-		'''if letter == 2 or letter == 3 or letter == 10 or letter == 15:
-=======
 		'''if letter == 2 or letter == 3 or letter == 10:
 			print ""
 			print ' before algo vpxp: ', vpxp, ' on iter ', letter
@@ -52,13 +50,8 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 			print ""'''	
 			
 		for let1 in acd:
-			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) + vpxp[let1]
-		
-		'''if letter == 2 or letter == 3 or letter == 10 or letter == 15:
-=======
-				
-		for let1 in acd:
-			vx[let1] = math.log(alpha_emissions[lines_test[letter][2]][let1]) + math.log(alpha_transition2[state][let1]) + vpxp[state]
+			for let2 in acd:
+				vx[let1] = math.log(alpha_emissions[let1][lines_test[letter][2]]) + math.log(alpha_transition2[let2][let1]) + vpxp[let2]
 		
 		'''if letter == 2 or letter == 3 or letter == 10:
 			print ""
@@ -68,25 +61,14 @@ def viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test):
 			print ""	'''
 		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
 		original_state += state		
-		#vpxp = dict(vx) - dict(vpxp)
-		#vpxp = {key: vx[key] - vpxp.get(key, 0) for key in vx.keys()}	
-=======
-			print ""'''	
-		state = max(vx.iteritems(), key=operator.itemgetter(1))[0]
-		original_state += state
-		
-		
+				
 		#vpxp = {key: vx[key] - vpxp.get(key, 0) for key in vx.keys()}
-		
-		for let1 in acd:
-			vpxp[let1] = float(0.0)
-			
 		vpxp = dict(vx)
-		
+			
 		for let1 in acd:
 			vx[let1] = float(0.0)  
 	
-	print original_state
+	#print original_state
 	return original_state
 
 		
@@ -123,20 +105,19 @@ def main():
 	with open('typos20Test.data') as t:
 		lines_test = t.read().splitlines()		
 	
-	for i in range(1,100):#len(lines_test)):
+	for i in range(1,50):#len(lines_test)):
 		ltobs+= lines_test[i][2]
 		ltst+= lines_test[i][0]
 	print ''
-	#print 'obs: ',ltobs
-	#print 'ste: ', ltst	
+	print 'obs: ',ltobs
+	print 'ste: ', ltst	
 	#print 'recreated: '
 	
 	# find & set observations & states
 	for i in range(0,len(lines)):
 		if re.search('[a-z_]',lines[i][0]): 
 			acd[lines[i][0]] +=1
-
-	
+		
 	#calc transitional and emission probs
 	for letter in range(0,len(lines)-1):
 		if re.search('[a-z_]',lines[letter][0]) and re.search('[a-z_]',lines[letter+1][0]):
@@ -148,8 +129,26 @@ def main():
 		for given in alphat:
 			alpha_transition2[letter][given] = alpha_transition2[letter][given] / acd[letter]  
 			alpha_emissions[letter][given] = alpha_emissions[letter][given] / acd[letter]
-
 	
+	
+	emtot = {}
+	trantot = {}
+	
+	for let1 in alphat:
+		emtot[let1] = float(0.0)
+		trantot[let1] = float(0.0)
+	
+	for i in acd:
+		for j in acd:
+			emtot[i] += alpha_emissions[i][j]
+			trantot[i] += alpha_transition2[i][j]
+	
+	print ''
+	print 'emissions: ', emtot
+	print 'transitions: ', trantot
+	print ''
+			
+			
 	after = viterbi_algo(acd, alpha_transition2, alpha_emissions, lines_test)
 	
 	print_dict(acd, alpha_transition2, alpha_emissions)
